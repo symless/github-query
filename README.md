@@ -15,6 +15,7 @@ Bug fixes:
 #6251 Service hangs after GUI is opened
 #5844 Icon causes Linux package manager to fail
 #4132 Laggy mouse cursor on macOS clients
+
 Enhancements:
 
 #6116 Quieter quartz event log entry on Mac
