@@ -5,7 +5,7 @@
 1. `$ git clone git@github.com:symless/github-query.git`
 2. `$ pip install pygithub`
 3. `$ cd github-query`
-4. `$ python ghq.py -i -p website -m "Awesome Milestone"`
+4. `$ python ghq.py -i -p synergy-core -m "v1.9.0-stable"`
 
 ## Example Output
 
