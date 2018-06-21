@@ -116,7 +116,7 @@ def readGitHubToken():
     f = open(filename, "r")
   except:
     print (
-      "Please create a file called " + filename + "containing a GitHub token.\n"
+      "Please create a file called " + filename + " containing a GitHub token.\n"
       "Tick the first `repo` option (yeah, a bit scary I suppose).\n"
       "Here's some help: http://bit.ly/github-access-token")
     sys.exit(errorCode)
