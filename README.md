@@ -5,4 +5,4 @@
 3. `$ git clone git@github.com:symless/github-query.git`
 4. `$ pip install pygithub`
 5. `$ cd github-query`
-6. `$ python ghq.py --help`
+6. `$ python ghq.py -i -p website -m "Awesome Milestone"`
