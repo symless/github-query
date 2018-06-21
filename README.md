@@ -1,4 +1,4 @@
-# GHQ (GitHub Query Script)
+# GitHub Query Script
 
 ## Instructions
 
