@@ -1,6 +1,6 @@
 # GHQ (GitHub Query Script)
 
-`$ git clone git@github.com:symless/github-query.git`
-`$ pip install pygithub`
-`$ cd github-query`
-`$ python ghq.py <args>`
+1. `$ git clone git@github.com:symless/github-query.git`
+2. `$ pip install pygithub`
+3. `$ cd github-query`
+4. `$ python ghq.py <args>`
