@@ -8,11 +8,13 @@ def usage():
   print "ghq.py\n\
   -i get issues\n\
   -p <project>\n\
-  -m <milestone>\n"
+  -m <milestone>\n\
+  -h html mode\n\
+  -l add links"
 
 def main(argv):
   try:
-    opts, args = getopt.getopt(argv, "ip:m:")
+    opts, args = getopt.getopt(argv, "ip:m:hl")
   except:
     print "Those args don't look right"
     usage()
@@ -21,6 +23,8 @@ def main(argv):
   runGetIssues = False
   project = ""
   milestone = ""
+  htmlMode = False
+  addLinks = False
 
   for opt, arg in opts:
     if opt == '-i':
@@ -29,15 +33,19 @@ def main(argv):
       project = arg
     elif opt == '-m':
       milestone = arg
+    elif opt == '-h':
+      htmlMode = True
+    elif opt == '-l':
+      addLinks = True
 
   if runGetIssues:
-    return getIssues(project, milestone)
+    return getIssues(project, milestone, htmlMode, addLinks)
 
   print "What do you want from me?"
   usage()
   return errorCode
 
-def getIssues(projectName, milestoneName):
+def getIssues(projectName, milestoneName, htmlMode, addLinks):
   token = readGitHubToken()
 
   if not projectName:
@@ -95,20 +103,49 @@ def getIssues(projectName, milestoneName):
       elif label.name == "feature":
         features.append(issue)
   
+  preHeader = ""
+  postHeader = ""
+  preList = ""
+  postList = ""
+  preItem = "- "
+  postItem = ""
+
+  if htmlMode:
+    preHeader = "<p>"
+    postHeader = "</p>"
+    preList = "<ul>"
+    postList = "</ul>"
+    preItem = "<li>"
+    postItem = "</li>"
+
   if len(bugs) != 0:
-    print "\nBug fixes:"
+    print "\n" + preHeader + "Bug fixes:" + postHeader
+    print preList
     for bug in bugs:
-      print "- #" + str(bug.number) + " " + bug.title
+      print getItem(bug, projectName, preItem, postItem, addLinks)
+    print postList
 
   if len(enhancements) != 0:
-    print "\nEnhancements:"
+    print "\n" + preHeader + "Enhancements:" + postHeader
+    print preList
     for enhancement in enhancements:
-      print "- #" + str(enhancement.number) + " " + enhancement.title
+      print getItem(enhancement, projectName, preItem, postItem, addLinks)
+    print postList
 
   if len(features) != 0:
-    print "\nFeatures:"
+    print "\n" + preHeader + "Features:" + postHeader
+    print preList
     for feature in features:
-      print "- #" + str(feature.number) + " " + feature.title
+      print getItem(feature, projectName, preItem, postItem, addLinks)
+    print postList
+
+def getItem(bug, projectName, preItem, postItem, addLinks):  
+  issueText = "#" + str(bug.number)
+  if addLinks:
+    issueText = (
+      "<a href=\"https://github.com/symless/" + projectName + "/issues/" +
+      str(bug.number) + "\" target=\"_blank\">" + issueText + "</a>")
+  return preItem + issueText + " " + bug.title + postItem
 
 def readGitHubToken():
   filename = "github-token"
