@@ -96,16 +96,24 @@ def getIssues(projectNames, milestoneName, htmlMode, addLinks):
     bugs = []
     enhancements = []
     features = []
+    others = []
 
     print "Organizing issues into neat piles..."
     for issue in issues:
+      added = 0
       for label in issue.get_labels():
         if label.name == "bug":
+          added = 1
           bugs.append(issue)
         elif label.name == "enhancement":
+          added = 1
           enhancements.append(issue)
         elif label.name == "feature":
+          added = 1
           features.append(issue)
+      if added != 1:
+        others.append(issue)
+
 
     preHeader = ""
     postHeader = ""
@@ -145,6 +153,15 @@ def getIssues(projectNames, milestoneName, htmlMode, addLinks):
       print preList
       for feature in features:
         item = getItem(feature, projectName, preItem, postItem, addLinks)
+        all.append(item)
+        print item
+      print postList
+
+    if len(others) != 0:
+      print "\n" + preHeader + "Others:" + postHeader
+      print preList
+      for other in others:
+        item = getItem(other, projectName, preItem, postItem, addLinks)
         all.append(item)
         print item
       print postList
