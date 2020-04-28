@@ -7,7 +7,7 @@ errorCode = 1
 def usage():
   print "ghq.py\n\
   -i get issues\n\
-  -p <project>\n\
+  -p <project> -p <project>\n\
   -m <milestone>\n\
   -h html mode\n\
   -l add links"
@@ -21,7 +21,7 @@ def main(argv):
     return errorCode
 
   runGetIssues = False
-  project = ""
+  projects = []
   milestone = ""
   htmlMode = False
   addLinks = False
@@ -30,7 +30,7 @@ def main(argv):
     if opt == '-i':
       runGetIssues = True
     elif opt == '-p':
-      project = arg
+      projects.append(arg)
     elif opt == '-m':
       milestone = arg
     elif opt == '-h':
@@ -39,105 +39,119 @@ def main(argv):
       addLinks = True
 
   if runGetIssues:
-    return getIssues(project, milestone, htmlMode, addLinks)
+    return getIssues(projects, milestone, htmlMode, addLinks)
 
   print "What do you want from me?"
   usage()
   return errorCode
 
-def getIssues(projectName, milestoneName, htmlMode, addLinks):
+def getIssues(projectNames, milestoneName, htmlMode, addLinks):
   token = readGitHubToken()
 
-  if not projectName:
-    print "Specify a project name with: -p <project>"
+  if len(projectNames) <= 0:
+    print "Specify a project name with: -p <project> -p <project>"
     return errorCode
 
   if not milestoneName:
     print "I need to know the milestone, use: -m <milestone>"
     return errorCode
 
-  print "Getting issues for " + milestoneName + " in " + projectName
-
   g = Github(token)
+
   organization = g.get_organization(organizationName)
-  
-  try:
-    repo = organization.get_repo(projectName)
-  except Exception as e:
-    print "GitHub didn't like that project name, try one of these:"
-    for repo in organization.get_repos():
-      print repo.name
-    return errorCode
 
-  milestones = repo.get_milestones()
-  if not any(True for _ in milestones):
-    print "There are no open milestones"
-    return errorCode
+  all = []
 
-  milestone = None
-  for milestone_ in milestones:
-    if milestone_.title == milestoneName:
-      milestone = milestone_ 
+  for projectName in projectNames:
+    print "Getting issues for " + milestoneName + " in " + projectName
 
-  if milestone:
-    print "Found your milestone: " + milestone.title
-  else:
-    print "Sorry, couldn't find that milestone, how about these?"
+    try:
+      repo = organization.get_repo(projectName)
+    except Exception as e:
+      print "GitHub didn't like that project name, try one of these:"
+      for repo in organization.get_repos():
+        print repo.name
+      return errorCode
+
+    milestones = repo.get_milestones()
+    if not any(True for _ in milestones):
+      print "There are no open milestones"
+      return errorCode
+
+    milestone = None
     for milestone_ in milestones:
-      print milestone_.title
-    print "Note: your milestone has to be open"
-    return errorCode
+      if milestone_.title == milestoneName:
+        milestone = milestone_
 
-  issues = repo.get_issues(milestone, "all")
-  bugs = []
-  enhancements = []
-  features = []
+    if milestone:
+      print "Found your milestone: " + milestone.title
+    else:
+      print "Sorry, couldn't find that milestone, how about these?"
+      for milestone_ in milestones:
+        print milestone_.title
+      print "Note: your milestone has to be open"
+      return errorCode
 
-  print "Organizing issues into neat piles..."
-  for issue in issues:
-    for label in issue.get_labels():
-      if label.name == "bug":
-        bugs.append(issue)
-      elif label.name == "enhancement":
-        enhancements.append(issue)
-      elif label.name == "feature":
-        features.append(issue)
-  
-  preHeader = ""
-  postHeader = ""
-  preList = ""
-  postList = ""
-  preItem = "- "
-  postItem = ""
+    issues = repo.get_issues(milestone, "all")
+    bugs = []
+    enhancements = []
+    features = []
 
-  if htmlMode:
-    preHeader = "<p>"
-    postHeader = "</p>"
-    preList = "<ul>"
-    postList = "</ul>"
-    preItem = "<li>"
-    postItem = "</li>"
+    print "Organizing issues into neat piles..."
+    for issue in issues:
+      for label in issue.get_labels():
+        if label.name == "bug":
+          bugs.append(issue)
+        elif label.name == "enhancement":
+          enhancements.append(issue)
+        elif label.name == "feature":
+          features.append(issue)
 
-  if len(bugs) != 0:
-    print "\n" + preHeader + "Bug fixes:" + postHeader
-    print preList
-    for bug in bugs:
-      print getItem(bug, projectName, preItem, postItem, addLinks)
-    print postList
+    preHeader = ""
+    postHeader = ""
+    preList = ""
+    postList = ""
+    preItem = "- "
+    postItem = ""
 
-  if len(enhancements) != 0:
-    print "\n" + preHeader + "Enhancements:" + postHeader
-    print preList
-    for enhancement in enhancements:
-      print getItem(enhancement, projectName, preItem, postItem, addLinks)
-    print postList
+    if htmlMode:
+      preHeader = "<p>"
+      postHeader = "</p>"
+      preList = "<ul>"
+      postList = "</ul>"
+      preItem = "<li>"
+      postItem = "</li>"
 
-  if len(features) != 0:
-    print "\n" + preHeader + "Features:" + postHeader
-    print preList
-    for feature in features:
-      print getItem(feature, projectName, preItem, postItem, addLinks)
-    print postList
+    if len(bugs) != 0:
+      print "\n" + preHeader + "Bug fixes:" + postHeader
+      print preList
+      for bug in bugs:
+        item = getItem(bug, projectName, preItem, postItem, addLinks)
+        all.append(item)
+        print item
+      print postList
+
+    if len(enhancements) != 0:
+      print "\n" + preHeader + "Enhancements:" + postHeader
+      print preList
+      for enhancement in enhancements:
+        item = getItem(enhancement, projectName, preItem, postItem, addLinks)
+        all.append(item)
+        print item
+      print postList
+
+    if len(features) != 0:
+      print "\n" + preHeader + "Features:" + postHeader
+      print preList
+      for feature in features:
+        item = getItem(feature, projectName, preItem, postItem, addLinks)
+        all.append(item)
+        print item
+      print postList
+
+  print "\n\n#All issues\n"
+  for issue in all:
+    print issue
 
 def getItem(bug, projectName, preItem, postItem, addLinks):  
   issueText = "#" + str(bug.number)
